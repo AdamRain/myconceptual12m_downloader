@@ -35,22 +35,30 @@ def old_ways(url, path):
 
 urls = []
 captions = []
+
 with open('./cc12m.tsv',encoding='utf-8', mode='r') as f:
-    for i in f.readlines():
+    for i in f.readlines():  # 12423374 in total
         url, caption = i.split('\t')
         urls.append(url)
         captions.append(caption)
 
+# devided task into 24 sub tasks, each task only need to download 517,640 pics
+
+console = 2 # need to modify in different console, I opened 24 consoles in my computer.
+
+urls = urls[(console-1)*517640:console*517640]
+captions = captions[(console-1)*517640:console*517640]
+
 bad_urls = []
 good_rec = []
-count = 0
+count = (console-1)*517640
 for url in urls:
     url.rstrip('\n')
-    print(str(count),"/",str(len(urls)))
+    print(str(count),"/",str(console*517640))
     print(url)
     attempts = 0
     success = False
-    while attempts < 20 and not success:
+    while attempts < 10 and not success:
         try:
             if not os.path.isfile('./img/%d.jpg' % count):
                 urlretrieve(url, './img/%d.jpg' % count)
@@ -79,20 +87,20 @@ for url in urls:
             print("error with img %d" % count, " retrying %d" % attempts)
             old_ways(url, './img/%d.jpg' % count)
             attempts += 1
-            if attempts == 20:
+            if attempts == 10:
                 bad_urls.append(str(count)+"\t"+url)
                 break
     count += 1
 
 # save bad links
-with open('bad_url.data', 'w', encoding='utf-8') as f:
+with open('bad_url%d.csv' % console, 'w', encoding='utf-8') as f:
     for i in bad_urls:
         f.write(i)
         f.write('\n')
     print('saved bad urls')
 
 # save captions and ids
-with open('cc12m.csv', 'w', encoding='utf-8') as f:
+with open('cc12m%d.csv' % console, 'w', encoding='utf-8') as f:
     for i in good_rec:
         f.write(i)
         f.write('\t')
